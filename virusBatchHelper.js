@@ -6,18 +6,8 @@ export const weakenScriptName = "virusWeaken.js";
 export const hackScriptName = "virusHack.js";
 export const growScriptName = "virusGrow.js";
 
-
-/** @param {NS} ns */
-export async function main(ns) {
-	ns.disableLog("ALL");
-	while (true) {
-		await GetBatchExecutionDetailsWithMaxRamAsync(ns, "omega-net", 128);
-		await ns.sleep(3000);
-	}
-}
-
 export class BatchExecutionDetails {
-	constructor(numHackThreads, numGrowThreads, numWeakenResetHackThreads, numWeakenResetGrowThreads, weakenRamCost, hackRamCost, growRamCost) {
+	constructor(numHackThreads, numGrowThreads, numWeakenResetHackThreads, numWeakenResetGrowThreads, weakenRamCost, hackRamCost, growRamCost, targetServer) {
 		this.numHackThreads = numHackThreads;
 		this.numGrowThreads = numGrowThreads;
 		this.numWeakenResetHackThreads = numWeakenResetHackThreads;
@@ -26,21 +16,7 @@ export class BatchExecutionDetails {
 		this.hackRamCost = hackRamCost;
 		this.growRamCost = growRamCost;
 		this.batchRamCost = (weakenRamCost * numWeakenResetGrowThreads) + (weakenRamCost * numWeakenResetHackThreads) + (hackRamCost * numHackThreads) + (growRamCost * numGrowThreads);
-	}
-}
-
-export async function GetBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, maxRAM) {
-	let validBatch = false;
-	let factorToSiphon = 0.30;
-	while (!validBatch) {
-		var batchDetails = await GetBatchExecutionDetailsAsync(ns, targetServerName, factorToSiphon);
-		ns.print(batchDetails);
-		if (batchDetails.batchRamCost > maxRAM) {
-			factorToSiphon = factorToSiphon - 0.01;
-		}
-		else {
-			return batchDetails;
-		}
+		this.targetServer = targetServer;
 	}
 }
 
@@ -71,7 +47,7 @@ export async function GetBatchExecutionDetailsAsync(ns, targetServerName, factor
 
 	var weakenThreadsToResetGrow = DetermineNumWeakenThreadsCounterGrow(ns, growThreadsRequired);
 
-	return new BatchExecutionDetails(hackThreadsRequired, growThreadsRequired, weakenThreadsToResetHack, weakenThreadsToResetGrow, weakenRam, hackRam, growRam);
+	return new BatchExecutionDetails(hackThreadsRequired, growThreadsRequired, weakenThreadsToResetHack, weakenThreadsToResetGrow, weakenRam, hackRam, growRam, targetServerName);
 }
 
 function DetermineNumWeakenThreadsCounterGrow(ns, numGrowThreads) {
