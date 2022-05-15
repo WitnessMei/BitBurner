@@ -50,9 +50,14 @@ export async function spawnVirusAsync(ns, serverName, target) {
 	} else {
 		await runVirusScriptAsync(ns, serverName, hackScriptName, target);
 	}
+	await ns.sleep(500);
 }
 
 export async function runVirusScriptAsync(ns, serverName, scriptName, targetServer) {
+	if (ns.getServerRequiredHackingLevel(targetServer) > ns.getHackingLevel()) {
+		ns.print("Required hacking level too high");
+		return;
+	}
 	ns.scriptKill(hackScriptName, serverName);
 	ns.scriptKill(weakenScriptName, serverName);
 	ns.scriptKill(growScriptName, serverName);
@@ -92,10 +97,6 @@ async function compromiseAndNukeServerAsync(ns, serverName) {
 		return true;
 	}
 	ns.print("Compromising and Nuking " + serverName);
-	if (ns.getServerRequiredHackingLevel(serverName) > ns.getHackingLevel()) {
-		ns.print("Required hacking level too high");
-		return false;
-	}
 	var numPortsToHack = ns.getServerNumPortsRequired(serverName);
 	if (numPortsToHack > 0) {
 		ns.brutessh(serverName);
