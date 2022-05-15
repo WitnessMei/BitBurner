@@ -5,6 +5,14 @@ export class ServerStatusReportMessage {
   }
 }
 
+export class BatchStatusReportMessage {
+	constructor(serverName, lastTargetServer, batchId) {
+	  this.serverName = serverName;
+	  this.lastTargetServer = lastTargetServer
+	  this.batchId = batchId;
+	}
+  }
+
 export async function sendMessageOnPort(ns, port, objectToSend){
 	var messageSent = false;
 	var messageToSend = JSON.stringify(objectToSend);
