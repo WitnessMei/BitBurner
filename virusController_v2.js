@@ -12,7 +12,6 @@ var hackScriptName = "/BitBurner/virusHack.js";
 var growScriptName = "/BitBurner/virusGrow.js"
 var scriptsToDeploy = ["/BitBurner/virusMessaging.js", "/BitBurner/virusHack.js", "/BitBurner/virusWeaken.js", "/BitBurner/virusGrow.js", "/BitBurner/virusBatchCallback.js"];
 export async function main(ns) {
-	await ns.sleep(3000);
 	var distributedAttackTargetServer = ns.args[0];
 	if (distributedAttackTargetServer == null || distributedAttackTargetServer == "") {
 		distributedAttackTargetServer = ns.getHostname();

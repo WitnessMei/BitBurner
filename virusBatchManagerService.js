@@ -60,7 +60,7 @@ export async function ListenForBatches(ns) {
 
 export async function startHackGrowBatchesOnServer(ns, targetServerName, scriptServerName) {
 	while (await startHackGrowBatchOnServer(ns, targetServerName, scriptServerName)) {
-		await ns.sleep(1000)
+		await ns.sleep(100)
 		ns.print("Spawned a batch");
 	}
 }

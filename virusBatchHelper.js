@@ -36,7 +36,7 @@ export async function GetHackGrowBatchExecutionDetailsAsync(ns, targetServerName
 	var moneyAcquiredPerHack = (targetCurrMoney * ns.hackAnalyze(targetServerName));
 	var hackThreadsRequired = Math.ceil(moneyToAcquire / moneyAcquiredPerHack);
 	if(hackThreadsRequired < 1){
-		await ns.sleep("NOT GOOD NO SIR");
+		await ns.print("NOT GOOD NO SIR");
 		hackThreadsRequired = 1
 	}
 	var totalMoneyAcquired = moneyAcquiredPerHack * hackThreadsRequired;
