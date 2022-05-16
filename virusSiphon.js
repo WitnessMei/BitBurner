@@ -21,7 +21,6 @@ export async function main(ns) {
 		var growthRate = 0;
 		while (serverMoneyAvailable < serverMoneyThreshold || growthRate > (1 + (0.025 * numThreads))) {
 			growthRate = await ns.grow(targetServer);
-			ns.print("growthRate: " + growthRate);
 			serverMoneyAvailable = ns.getServerMoneyAvailable(targetServer);
 		}
 		await ns.hack(targetServer);

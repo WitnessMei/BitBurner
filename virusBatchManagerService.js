@@ -44,8 +44,6 @@ export async function ListenForBatches(ns) {
 			let lastTarget = serverStatusReportMessage.lastTargetServer;
 			let batchId = serverStatusReportMessage.batchId;
 
-			ns.print("messageBatchId = " + batchId);
-
 			// not tracking batches yet
 			// const isBatchId = (element) => element.batchId == batchId;
 			// var batchIndex = trackedBatches.findIndex(isBatchId);
@@ -61,7 +59,6 @@ export async function ListenForBatches(ns) {
 export async function startHackGrowBatchesOnServer(ns, targetServerName, scriptServerName) {
 	while (await startHackGrowBatchOnServer(ns, targetServerName, scriptServerName)) {
 		await ns.sleep(100)
-		ns.print("Spawned a batch");
 	}
 }
 
@@ -135,7 +132,6 @@ async function GetHackGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerN
 	let factorToSiphon = 0.30;
 	while (!validBatch && factorToSiphon > 0) {
 		let batchDetails = await batchHelper.GetHackGrowBatchExecutionDetailsAsync(ns, targetServerName, factorToSiphon);
-		ns.print(batchDetails);
 		if (batchDetails.batchRamCost > scriptServerMaxRam) {
 			factorToSiphon = factorToSiphon - 0.001;
 		}

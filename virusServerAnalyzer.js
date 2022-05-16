@@ -25,12 +25,12 @@ export async function shouldHackWeakenGrow(ns, serverName) {
 	if (serverSecurityLevel > (serverMinSecurity + 1)) {
 		return HackWeakenGrow.Weaken;
 	} else {
-		ns.print("Server " + serverName + " Security - CUR: " + serverSecurityLevel + " MIN: " + serverMinSecurity + 1);
+		//ns.print("Server " + serverName + " Security - CUR: " + serverSecurityLevel + " MIN: " + serverMinSecurity + 1);
 	}
 	if (serverMoneyAvailable < serverMoneyThreshold) {
 		return HackWeakenGrow.Grow;
 	}else {
-		ns.print("Server " + serverName + " Money - CUR: " + serverMoneyAvailable + " MIN: " + serverMoneyThreshold);
+		//ns.print("Server " + serverName + " Money - CUR: " + serverMoneyAvailable + " MIN: " + serverMoneyThreshold);
 	}
 	return HackWeakenGrow.Hack;
 }
