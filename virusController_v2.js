@@ -42,7 +42,7 @@ export async function listenForScriptUpdatesAsync(ns) {
 }
 
 export async function spawnVirusAsync(ns, serverName, target) {
-	await batchManager.startHackGrowBatchOnServer(ns, target, serverName)
+	await batchManager.startHackGrowBatchesOnServer(ns, target, serverName)
 
 	// ns.print("Determining script to run...");
 	// let hackWeakenGrow = await ServerAnalyzer.shouldHackWeakenGrow(ns, target);

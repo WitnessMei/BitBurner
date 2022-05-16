@@ -33,7 +33,7 @@ export class BatchDetails {
 	}
 }
 
-export async function ListenForBatches(ns){
+export async function ListenForBatches(ns) {
 	ns.print("Listening for BATCH messages...");
 	while (true) {
 		var message = await ns.readPort(batchManagerServiceListenPort);
@@ -58,12 +58,19 @@ export async function ListenForBatches(ns){
 	}
 }
 
+export async function startHackGrowBatchesOnServer(ns, targetServerName, scriptServerName) {
+	while (await startHackGrowBatchOnServer(ns, targetServerName, scriptServerName)) {
+		await ns.sleep(1000)
+		ns.print("Spawned a batch");
+	}
+}
+
 export async function startHackGrowBatchOnServer(ns, targetServerName, scriptServerName) {
 	var batchId = crypto.randomUUID();
 	var availableRam = ns.getServerMaxRam(scriptServerName) - ns.getServerUsedRam(scriptServerName);
 	var executionDetails = await GetHackGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, availableRam);
-	if(executionDetails.batchRamCost == 0){
-		return;
+	if (executionDetails.batchRamCost == 0) {
+		return false;
 	}
 	var hackTime = ns.getHackTime(targetServerName);
 	var weakenTime = ns.getWeakenTime(targetServerName);
@@ -85,6 +92,8 @@ export async function startHackGrowBatchOnServer(ns, targetServerName, scriptSer
 	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetGrowThreads, secondWeakenDelay, batchId, 4);
 	await spawnVirusScriptAsync(ns, scriptServerName, callbackScriptName, targetServerName, 1, callbackDelay, batchId, 5);
 
+	return true;
+
 	// var batchTrackingDetails = new BatchDetails(scriptServerName, batchId, executionDetails);
 	// trackedBatches.push(batchTrackingDetails);
 }
@@ -93,7 +102,7 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 	var batchId = crypto.randomUUID();
 	var availableRam = ns.getServerMaxRam(scriptServerName) - ns.getServerUsedRam(scriptServerName);
 	let executionDetails = await GetGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, availableRam);
-	if(executionDetails.batchRamCost == 0){
+	if (executionDetails.batchRamCost == 0) {
 		return;
 	}
 	var weakenTime = ns.getWeakenTime(targetServerName);
@@ -134,7 +143,7 @@ async function GetHackGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerN
 			return batchDetails;
 		}
 	}
-	return new batchHelper.BatchExecutionDetails(0,0,0,0,0,0,0,0,targetServerName);
+	return new batchHelper.BatchExecutionDetails(0, 0, 0, 0, 0, 0, 0, 0, targetServerName);
 }
 
 async function GetGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, scriptServerMaxRam) {
