@@ -2,12 +2,13 @@ export const hackSecurityIncrease = 0.002;
 export const growSecurityIncrease = 0.004;
 export const weakenSecurityDecrease = 0.005;
 
+export const batchCallbackScriptName = "virusBatchCallback.js";
 export const weakenScriptName = "virusWeaken.js";
 export const hackScriptName = "virusHack.js";
 export const growScriptName = "virusGrow.js";
 
 export class BatchExecutionDetails {
-	constructor(numHackThreads, numGrowThreads, numWeakenResetHackThreads, numWeakenResetGrowThreads, weakenRamCost, hackRamCost, growRamCost, targetServer) {
+	constructor(numHackThreads, numGrowThreads, numWeakenResetHackThreads, numWeakenResetGrowThreads, weakenRamCost, hackRamCost, growRamCost, callbackRam, targetServer) {
 		this.numHackThreads = numHackThreads;
 		this.numGrowThreads = numGrowThreads;
 		this.numWeakenResetHackThreads = numWeakenResetHackThreads;
@@ -20,10 +21,11 @@ export class BatchExecutionDetails {
 	}
 }
 
-export async function GetBatchExecutionDetailsAsync(ns, targetServerName, factorToSiphon) {
-	var weakenRam = ns.getScriptRam(weakenScriptName, "home");
-	var hackRam = ns.getScriptRam(hackScriptName, "home");
-	var growRam = ns.getScriptRam(growScriptName, "home");
+export async function GetHackGrowBatchExecutionDetailsAsync(ns, targetServerName, factorToSiphon) {
+	var weakenRam = ns.getScriptRam(weakenScriptName, ns.getHostname());
+	var hackRam = ns.getScriptRam(hackScriptName, ns.getHostname());
+	var growRam = ns.getScriptRam(growScriptName, ns.getHostname());
+	var callbackRam = ns.getScriptRam(batchCallbackScriptName, ns.getHostname());
 	var thing = ns.getScriptRam("BitBurner/" + weakenScriptName);
 
 	ns.print("ramcalcs");
@@ -47,7 +49,33 @@ export async function GetBatchExecutionDetailsAsync(ns, targetServerName, factor
 
 	var weakenThreadsToResetGrow = DetermineNumWeakenThreadsCounterGrow(ns, growThreadsRequired);
 
-	return new BatchExecutionDetails(hackThreadsRequired, growThreadsRequired, weakenThreadsToResetHack, weakenThreadsToResetGrow, weakenRam, hackRam, growRam, targetServerName);
+	return new BatchExecutionDetails(hackThreadsRequired, growThreadsRequired, weakenThreadsToResetHack, weakenThreadsToResetGrow, weakenRam, hackRam, growRam, callbackRam, targetServerName);
+}
+
+export async function GetGrowBatchExecutionDetailsAsync(ns, targetServerName, maxRam) {
+	var weakenRam = ns.getScriptRam(weakenScriptName, ns.getHostname());
+	var growRam = ns.getScriptRam(growScriptName, ns.getHostname());
+	var callbackRam = ns.getScriptRam(batchCallbackScriptName, ns.getHostname());
+
+	var ramUnit = (maxRam - callbackRam)/9.0;
+	var maxRamForGrow = ramUnit * 5.0;
+	var targetMaxMoney = ns.getServerMaxMoney(targetServerName);
+	var targetCurrMoney = ns.getServerMoneyAvailable(targetServerName);
+
+	var growFactorNeededToReset = targetMaxMoney / targetCurrMoney;
+	var totalGrowThreadsRequired = Math.ceil(ns.growthAnalyze(targetServerName, growFactorNeededToReset));
+	var maxPossibleGrowThreads = Math.floor(maxRamForGrow/growRam);
+
+	var growThreadsRequired = 0;
+	if(totalGrowThreadsRequired > maxPossibleGrowThreads){
+		growThreadsRequired = maxPossibleGrowThreads;
+	} else {
+		growThreadsRequired = totalGrowThreadsRequired;
+	}
+
+	var weakenThreadsToResetGrow = DetermineNumWeakenThreadsCounterGrow(ns, growThreadsRequired);
+
+	return new BatchExecutionDetails(0, growThreadsRequired, 0, weakenThreadsToResetGrow, weakenRam, 0, growRam, callbackRam, targetServerName);
 }
 
 function DetermineNumWeakenThreadsCounterGrow(ns, numGrowThreads) {
