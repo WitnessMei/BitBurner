@@ -16,7 +16,7 @@ export class BatchExecutionDetails {
 		this.weakenRamCost = weakenRamCost;
 		this.hackRamCost = hackRamCost;
 		this.growRamCost = growRamCost;
-		this.batchRamCost = (weakenRamCost * numWeakenResetGrowThreads) + (weakenRamCost * numWeakenResetHackThreads) + (hackRamCost * numHackThreads) + (growRamCost * numGrowThreads);
+		this.batchRamCost = (weakenRamCost * numWeakenResetGrowThreads) + (weakenRamCost * numWeakenResetHackThreads) + (hackRamCost * numHackThreads) + (growRamCost * numGrowThreads) + callbackRam;
 		this.targetServer = targetServer;
 	}
 }
