@@ -124,8 +124,9 @@ async function spawnVirusScriptAsync(ns, serverName, scriptName, targetServer, n
 async function GetHackGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, scriptServerMaxRam) {
 	let validBatch = false;
 	let factorToSiphon = 0.30;
-	while (!validBatch) {
+	while (!validBatch && factorToSiphon > 0) {
 		let batchDetails = await batchHelper.GetHackGrowBatchExecutionDetailsAsync(ns, targetServerName, factorToSiphon);
+		ns.print(batchDetails);
 		if (batchDetails.batchRamCost > scriptServerMaxRam) {
 			factorToSiphon = factorToSiphon - 0.001;
 		}
@@ -133,6 +134,7 @@ async function GetHackGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerN
 			return batchDetails;
 		}
 	}
+	return new batchHelper.BatchExecutionDetails(0,0,0,0,0,0,0,0,targetServerName);
 }
 
 async function GetGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, scriptServerMaxRam) {

@@ -35,11 +35,18 @@ export async function GetHackGrowBatchExecutionDetailsAsync(ns, targetServerName
 	var moneyToAcquire = targetCurrMoney * factorToSiphon;
 	var moneyAcquiredPerHack = (targetCurrMoney * ns.hackAnalyze(targetServerName));
 	var hackThreadsRequired = Math.ceil(moneyToAcquire / moneyAcquiredPerHack);
+	if(hackThreadsRequired < 1){
+		await ns.sleep("NOT GOOD NO SIR");
+		hackThreadsRequired = 1
+	}
 	var totalMoneyAcquired = moneyAcquiredPerHack * hackThreadsRequired;
 
 	var weakenThreadsToResetHack = DetermineNumWeakenThreadsCounterHack(ns, hackThreadsRequired);
 
 	var growFactorNeededToReset = targetCurrMoney / (targetCurrMoney - totalMoneyAcquired);
+	if(growFactorNeededToReset < 1){
+		growFactorNeededToReset = 1;
+	}
 	var growThreadsRequired = Math.ceil(ns.growthAnalyze(targetServerName, growFactorNeededToReset));
 
 	var weakenThreadsToResetGrow = DetermineNumWeakenThreadsCounterGrow(ns, growThreadsRequired);
