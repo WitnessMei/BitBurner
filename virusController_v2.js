@@ -25,19 +25,20 @@ export async function main(ns) {
 
 export async function listenForScriptUpdatesAsync(ns) {
 	ns.print("Listening for messages...");
-	while (true) {
-		var message = await ns.readPort(1);
-		if (message != "NULL PORT DATA" && message != null && message != "") {
-			let serverStatusReportMessage = JSON.parse(message);
-			ns.print("Recieved message " + message);
-			let serverName = serverStatusReportMessage.serverName;
-			let lastTarget = serverStatusReportMessage.lastTargetServer;
-			if (!(message.serverName == ns.getHostname())) {
-				await spawnVirusAsync(ns, serverName, lastTarget);
-			}
-		}
-		await ns.sleep(250);
-	}
+	await batchManager.ListenForBatches(ns);
+	// while (true) {
+	// 	// var message = await ns.readPort(1);
+	// 	// if (message != "NULL PORT DATA" && message != null && message != "") {
+	// 	// 	let serverStatusReportMessage = JSON.parse(message);
+	// 	// 	ns.print("Recieved message " + message);
+	// 	// 	let serverName = serverStatusReportMessage.serverName;
+	// 	// 	let lastTarget = serverStatusReportMessage.lastTargetServer;
+	// 	// 	if (!(message.serverName == ns.getHostname())) {
+	// 	// 		await spawnVirusAsync(ns, serverName, lastTarget);
+	// 	// 	}
+	// 	// }
+	// 	// await ns.sleep(250);
+	// }
 }
 
 export async function spawnVirusAsync(ns, serverName, target) {

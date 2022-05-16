@@ -12,8 +12,4 @@ export async function main(ns) {
 
 export async function hackServer(ns, targetServerName, scriptServerName, masterScriptPort) {
 	await ns.hack(targetServerName);
-	var messageToSend = Object.create(Messaging.ServerStatusReportMessage);
-	messageToSend.serverName = scriptServerName;
-	messageToSend.lastTargetServer = targetServerName;
-	await Messaging.sendMessageOnPort(ns, masterScriptPort, messageToSend);
 }
