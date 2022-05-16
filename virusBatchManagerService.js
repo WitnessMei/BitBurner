@@ -50,7 +50,14 @@ export async function ListenForBatches(ns) {
 			// //var batchExecutionDetails = trackedBatches[batchIndex].batchExecutionDetails;
 			// trackedBatches.splice(batchIndex, 1);
 
-			await startHackGrowBatchOnServer(ns, lastTarget, serverName);
+			var targetMoneyThreshold = ns.getServerMaxMoney(targetServerName) * 0.98;
+			var targetCurrMoney = ns.getServerMoneyAvailable(targetServerName);
+			if(serverStatusReportMessage.batchType == 'grow' && targetCurrMoney < targetMoneyThreshold){
+				await StartGrowBatchOnServer(ns, lastTarget, serverName);
+			}
+			else if (serverStatusReportMessage.batchType == 'hack'){
+				await startHackGrowBatchOnServer(ns, lastTarget, serverName);
+			}
 		}
 		await ns.sleep(250);
 	}
@@ -83,11 +90,11 @@ export async function startHackGrowBatchOnServer(ns, targetServerName, scriptSer
 	//Run one callback script to alert BatchManagerService when the batch is complete.
 	ns.print("BATCH " + batchId + " on " + scriptServerName + ":");
 	ns.print("Target " + targetServerName);
-	await spawnVirusScriptAsync(ns, scriptServerName, hackScriptName, targetServerName, executionDetails.numHackThreads, hackDelay, batchId, 1);
-	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetHackThreads, firstWeakenDelay, batchId, 2);
-	await spawnVirusScriptAsync(ns, scriptServerName, growScriptName, targetServerName, executionDetails.numGrowThreads, growDelay, batchId, 3);
-	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetGrowThreads, secondWeakenDelay, batchId, 4);
-	await spawnVirusScriptAsync(ns, scriptServerName, callbackScriptName, targetServerName, 1, callbackDelay, batchId, 5);
+	await spawnVirusScriptAsync(ns, scriptServerName, hackScriptName, targetServerName, executionDetails.numHackThreads, hackDelay, batchId, "hack", 1);
+	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetHackThreads, firstWeakenDelay, batchId, "hack", 2);
+	await spawnVirusScriptAsync(ns, scriptServerName, growScriptName, targetServerName, executionDetails.numGrowThreads, growDelay, batchId, "hack", 3);
+	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetGrowThreads, secondWeakenDelay, batchId, "hack", 4);
+	await spawnVirusScriptAsync(ns, scriptServerName, callbackScriptName, targetServerName, 1, callbackDelay, batchId, "hack", 5);
 
 	return true;
 
@@ -95,12 +102,19 @@ export async function startHackGrowBatchOnServer(ns, targetServerName, scriptSer
 	// trackedBatches.push(batchTrackingDetails);
 }
 
+export async function startGrowBatchesOnServer(ns, targetServerName, scriptServerName) {
+	while (await StartGrowBatchOnServer(ns, targetServerName, scriptServerName)) {
+		await ns.sleep(100)
+	}
+}
+
 export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerName) {
 	var batchId = crypto.randomUUID();
 	var availableRam = ns.getServerMaxRam(scriptServerName) - ns.getServerUsedRam(scriptServerName);
 	let executionDetails = await GetGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, availableRam);
+	//ns.tprint(executionDetails);
 	if (executionDetails.batchRamCost == 0) {
-		return;
+		return false;
 	}
 	var weakenTime = ns.getWeakenTime(targetServerName);
 	var growTime = ns.getGrowTime(targetServerName);
@@ -113,27 +127,28 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 	//Run one callback script to alert BatchManagerService when the batch is complete.
 	ns.print("BATCH " + batchId + " on " + scriptServerName + ":");
 	ns.print("Target " + targetServerName);
-	await spawnVirusScriptAsync(ns, scriptServerName, growScriptName, targetServerName, executionDetails.numGrowThreads, growDelay, batchId, 1);
-	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetGrowThreads, secondWeakenDelay, batchId, 2);
-	await spawnVirusScriptAsync(ns, scriptServerName, callbackScriptName, targetServerName, 1, callbackDelay, batchId, 3);
+	await spawnVirusScriptAsync(ns, scriptServerName, growScriptName, targetServerName, executionDetails.numGrowThreads, growDelay, batchId, "grow", 1);
+	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetGrowThreads, secondWeakenDelay, batchId, "grow", 2);
+	await spawnVirusScriptAsync(ns, scriptServerName, callbackScriptName, targetServerName, 1, callbackDelay, batchId, "grow", 3);
 
 	// var batchTrackingDetails = new BatchDetails(scriptServerName, batchId, executionDetails);
 	// trackedBatches.push(batchTrackingDetails);
+	return true;
 }
 
-async function spawnVirusScriptAsync(ns, serverName, scriptName, targetServer, numThreads, msDelay, batchId, step) {
+async function spawnVirusScriptAsync(ns, serverName, scriptName, targetServer, numThreads, msDelay, batchId, batchType, step) {
 	ns.print("Running " + scriptName + " with " + numThreads + " threads.");
-	ns.exec(scriptName, serverName, numThreads, targetServer, serverName, batchManagerServiceListenPort, msDelay, batchId, step);
+	ns.exec(scriptName, serverName, numThreads, targetServer, serverName, batchManagerServiceListenPort, msDelay, batchId, batchType, step);
 	await ns.sleep(5);
 }
 
 async function GetHackGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, scriptServerMaxRam) {
 	let validBatch = false;
-	let factorToSiphon = 0.30;
+	let factorToSiphon = 0.50;
 	while (!validBatch && factorToSiphon > 0) {
 		let batchDetails = await batchHelper.GetHackGrowBatchExecutionDetailsAsync(ns, targetServerName, factorToSiphon);
 		if (batchDetails.batchRamCost > scriptServerMaxRam) {
-			factorToSiphon = factorToSiphon - 0.001;
+			factorToSiphon = factorToSiphon - 0.0001;
 		}
 		else {
 			return batchDetails;

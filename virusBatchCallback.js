@@ -8,10 +8,10 @@ export async function main(ns) {
 	}
 	//maybe in future instead of sleeping it can monitor all virusScripts with batch id, and report back when they're all complete.
 	await ns.sleep(waitMsTillExecution);
-	await respondToMaster(ns, ns.args[0], ns.args[1], ns.args[2], ns.args[4]);
+	await respondToMaster(ns, ns.args[0], ns.args[1], ns.args[2], ns.args[4], ns.args[5]);
 }
 
-export async function respondToMaster(ns, targetServerName, scriptServerName, masterScriptPort, batchId) {
-	var messageToSend =  new Messaging.BatchStatusReportMessage(scriptServerName, targetServerName, batchId);
+export async function respondToMaster(ns, targetServerName, scriptServerName, masterScriptPort, batchId, batchType) {
+	var messageToSend =  new Messaging.BatchStatusReportMessage(scriptServerName, targetServerName, batchId, batchType);
 	await Messaging.sendMessageOnPort(ns, masterScriptPort, messageToSend);
 }

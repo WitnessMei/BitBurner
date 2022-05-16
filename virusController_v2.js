@@ -13,12 +13,12 @@ var growScriptName = "/BitBurner/virusGrow.js"
 var scriptsToDeploy = ["/BitBurner/virusMessaging.js", "/BitBurner/virusHack.js", "/BitBurner/virusWeaken.js", "/BitBurner/virusGrow.js", "/BitBurner/virusBatchCallback.js"];
 export async function main(ns) {
 	var distributedAttackTargetServer = ns.args[0];
+	var attackType = ns.args[1];
 	if (distributedAttackTargetServer == null || distributedAttackTargetServer == "") {
 		distributedAttackTargetServer = ns.getHostname();
 	}
 	ns.disableLog("ALL");
-	await spawnVirusAsync(ns, ns.getHostname(), distributedAttackTargetServer);
-	await nukeServersAsync(ns, distributedAttackTargetServer);
+	await nukeServersAsync(ns, distributedAttackTargetServer, attackType);
 	await listenForScriptUpdatesAsync(ns);
 }
 
@@ -40,8 +40,15 @@ export async function listenForScriptUpdatesAsync(ns) {
 	// }
 }
 
-export async function spawnVirusAsync(ns, serverName, target) {
-	await batchManager.startHackGrowBatchesOnServer(ns, target, serverName)
+export async function spawnVirusAsync(ns, serverName, target, attackType) {
+	if (attackType == "grow") {
+		await batchManager.startGrowBatchesOnServer(ns, target, serverName);
+	} else if (attackType == "hack") {
+		await batchManager.startHackGrowBatchesOnServer(ns, target, serverName)
+	}
+	else {
+		await ns.tprint("Unrecognized attack type!");
+	}
 
 	// ns.print("Determining script to run...");
 	// let hackWeakenGrow = await ServerAnalyzer.shouldHackWeakenGrow(ns, target);
@@ -74,7 +81,7 @@ export async function runVirusScriptAsync(ns, serverName, scriptName, targetServ
 	}
 }
 
-export async function nukeServersAsync(ns, distributedAttackTargetServer) {
+export async function nukeServersAsync(ns, distributedAttackTargetServer, attackType) {
 	handledServers = [ns.getHostname(), 'home'];
 	var serversToScan = await serversScanAsync(ns, distributedAttackTargetServer);
 	for (var i = 0; i < serversToScan.length; i++) {
@@ -92,7 +99,7 @@ export async function nukeServersAsync(ns, distributedAttackTargetServer) {
 
 			//run a script
 			ns.print("SPAWNING BATCH FOR " + serverName);
-			await spawnVirusAsync(ns, serverName, distributedAttackTargetServer)
+			await spawnVirusAsync(ns, serverName, distributedAttackTargetServer, attackType)
 		}
 		handledServers.push(serverName);
 	}

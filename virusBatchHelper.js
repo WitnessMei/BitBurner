@@ -59,6 +59,9 @@ export async function GetGrowBatchExecutionDetailsAsync(ns, targetServerName, ma
 	var growRam = ns.getScriptRam(growScriptName, ns.getHostname());
 	var callbackRam = ns.getScriptRam(batchCallbackScriptName, ns.getHostname());
 
+	if(maxRam < (weakenRam + callbackRam + growRam)){
+		return new BatchExecutionDetails(0, 0, 0, 0, 0, 0, 0, 0, targetServerName); 
+	}
 	var ramUnit = (maxRam - callbackRam)/9.0;
 	var maxRamForGrow = ramUnit * 5.0;
 	var targetMaxMoney = ns.getServerMaxMoney(targetServerName);
