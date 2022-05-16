@@ -1,5 +1,5 @@
 /** @param {NS} ns */
-import * as Messaging from "virusMessaging.js";
+import * as Messaging from "BitBurner/virusMessaging.js";
 
 export async function main(ns) {
 	var waitMsTillExecution = ns.args[3];

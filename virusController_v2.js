@@ -1,17 +1,18 @@
 /** @param {NS} ns */
 //import { deployFileToServer, getNewServersToScan } from "deployScript.js";
-import * as deployScripts from "deployScript.js";
-import * as Messaging from "virusMessaging.js";
-import * as ServerAnalyzer from "virusServerAnalyzer";
+import * as batchManager from "/BitBurner/virusBatchManagerService.js";
+import * as deployScripts from "/BitBurner/deployScript.js";
+import * as Messaging from "/BitBurner/virusMessaging.js";
+import * as ServerAnalyzer from "/BitBurner/virusServerAnalyzer";
 
 var listenPort = 1;
 var handledServers = [];
-var weakenScriptName = "virusWeaken.js";
-var hackScriptName = "virusHack.js";
-var growScriptName = "virusGrow.js"
-var scriptsToDeploy = ["virusMessaging.js", "virusHack.js", "virusWeaken.js", "virusGrow.js"];
+var weakenScriptName = "/BitBurner/virusWeaken.js";
+var hackScriptName = "/BitBurner/virusHack.js";
+var growScriptName = "/BitBurner/virusGrow.js"
+var scriptsToDeploy = ["/BitBurner/virusMessaging.js", "/BitBurner/virusHack.js", "/BitBurner/virusWeaken.js", "/BitBurner/virusGrow.js", "/BitBurner/virusBatchCallback.js"];
 export async function main(ns) {
-	await ns.sleep(5000);
+	await ns.sleep(3000);
 	var distributedAttackTargetServer = ns.args[0];
 	if (distributedAttackTargetServer == null || distributedAttackTargetServer == "") {
 		distributedAttackTargetServer = ns.getHostname();
@@ -40,16 +41,18 @@ export async function listenForScriptUpdatesAsync(ns) {
 }
 
 export async function spawnVirusAsync(ns, serverName, target) {
-	ns.print("Determining script to run...");
-	let hackWeakenGrow = await ServerAnalyzer.shouldHackWeakenGrow(ns, target);
-	ns.print(hackWeakenGrow.name);
-	if (hackWeakenGrow == ServerAnalyzer.HackWeakenGrow.Weaken) {
-		await runVirusScriptAsync(ns, serverName, weakenScriptName, target);
-	} else if (hackWeakenGrow == ServerAnalyzer.HackWeakenGrow.Grow) {
-		await runVirusScriptAsync(ns, serverName, growScriptName, target);
-	} else {
-		await runVirusScriptAsync(ns, serverName, hackScriptName, target);
-	}
+	await batchManager.startHackGrowBatchOnServer(ns, target, serverName)
+
+	// ns.print("Determining script to run...");
+	// let hackWeakenGrow = await ServerAnalyzer.shouldHackWeakenGrow(ns, target);
+	// ns.print(hackWeakenGrow.name);
+	// if (hackWeakenGrow == ServerAnalyzer.HackWeakenGrow.Weaken) {
+	// 	await runVirusScriptAsync(ns, serverName, weakenScriptName, target);
+	// } else if (hackWeakenGrow == ServerAnalyzer.HackWeakenGrow.Grow) {
+	// 	await runVirusScriptAsync(ns, serverName, growScriptName, target);
+	// } else {
+	// 	await runVirusScriptAsync(ns, serverName, hackScriptName, target);
+	// }
 	await ns.sleep(500);
 }
 
@@ -82,10 +85,13 @@ export async function nukeServersAsync(ns, distributedAttackTargetServer) {
 			//deploy all required scripts
 			for (let p = 0; p < scriptsToDeploy.length; p++) {
 				let scriptToDeploy = scriptsToDeploy[p];
+				//ns.enableLog("ALL");
 				await deployScripts.deployFileToServerAsync(ns, scriptToDeploy, serverName);
+				ns.disableLog("ALL");
 			}
 
 			//run a script
+			ns.print("SPAWNING BATCH FOR " + serverName);
 			await spawnVirusAsync(ns, serverName, distributedAttackTargetServer)
 		}
 		handledServers.push(serverName);
@@ -123,7 +129,6 @@ export async function serversScanAsync(ns, target) {
 	var playerServers = ['home', 'Server1'];
 	var serverChecked = [];
 	var checkList = [];
-	ns.print(target);
 	var servers1 = await ns.scan(target);
 	for (var server in servers1) {
 		if (!checkList.includes(servers1[server])) {
@@ -135,7 +140,6 @@ export async function serversScanAsync(ns, target) {
 	while (flag) {
 		flag = false;
 		for (var i = 0; i < checkList.length; i++) {
-			ns.print("checklist " + checkList);
 			var servers = await ns.scan(checkList[i]);
 			if (!serverChecked.includes(checkList[i])) {
 				serverChecked.push(checkList[i]);

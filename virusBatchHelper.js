@@ -2,10 +2,10 @@ export const hackSecurityIncrease = 0.002;
 export const growSecurityIncrease = 0.004;
 export const weakenSecurityDecrease = 0.005;
 
-export const batchCallbackScriptName = "virusBatchCallback.js";
-export const weakenScriptName = "virusWeaken.js";
-export const hackScriptName = "virusHack.js";
-export const growScriptName = "virusGrow.js";
+export const batchCallbackScriptName = "/BitBurner/virusBatchCallback.js";
+export const weakenScriptName = "/BitBurner/virusWeaken.js";
+export const hackScriptName = "/BitBurner/virusHack.js";
+export const growScriptName = "/BitBurner/virusGrow.js";
 
 export class BatchExecutionDetails {
 	constructor(numHackThreads, numGrowThreads, numWeakenResetHackThreads, numWeakenResetGrowThreads, weakenRamCost, hackRamCost, growRamCost, callbackRam, targetServer) {
@@ -22,15 +22,10 @@ export class BatchExecutionDetails {
 }
 
 export async function GetHackGrowBatchExecutionDetailsAsync(ns, targetServerName, factorToSiphon) {
-	var weakenRam = ns.getScriptRam(weakenScriptName, ns.getHostname());
-	var hackRam = ns.getScriptRam(hackScriptName, ns.getHostname());
-	var growRam = ns.getScriptRam(growScriptName, ns.getHostname());
-	var callbackRam = ns.getScriptRam(batchCallbackScriptName, ns.getHostname());
-	var thing = ns.getScriptRam("BitBurner/" + weakenScriptName);
-
-	ns.print("ramcalcs");
-	ns.print(weakenRam);
-	ns.print(thing);
+	var weakenRam = ns.getScriptRam(weakenScriptName);
+	var hackRam = ns.getScriptRam(hackScriptName);
+	var growRam = ns.getScriptRam(growScriptName);
+	var callbackRam = ns.getScriptRam(batchCallbackScriptName);
 
 	var targetMaxMoney = ns.getServerMaxMoney(targetServerName);
 	var targetCurrMoney = ns.getServerMoneyAvailable(targetServerName);

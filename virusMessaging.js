@@ -16,8 +16,9 @@ export class BatchStatusReportMessage {
 export async function sendMessageOnPort(ns, port, objectToSend){
 	var messageSent = false;
 	var messageToSend = JSON.stringify(objectToSend);
+	messageSent = await ns.tryWritePort(port, messageToSend);
 	while (!messageSent) {
-		messageSent = await ns.tryWritePort(port, messageToSend);
 		await ns.sleep(1000);
+		messageSent = await ns.tryWritePort(port, messageToSend);
 	}
 }
