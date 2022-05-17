@@ -50,8 +50,8 @@ export async function ListenForBatches(ns) {
 			// //var batchExecutionDetails = trackedBatches[batchIndex].batchExecutionDetails;
 			// trackedBatches.splice(batchIndex, 1);
 
-			var targetMoneyThreshold = ns.getServerMaxMoney(targetServerName) * 0.98;
-			var targetCurrMoney = ns.getServerMoneyAvailable(targetServerName);
+			var targetMoneyThreshold = ns.getServerMaxMoney(lastTarget) * 0.98;
+			var targetCurrMoney = ns.getServerMoneyAvailable(lastTarget);
 			if(serverStatusReportMessage.batchType == 'grow' && targetCurrMoney < targetMoneyThreshold){
 				await StartGrowBatchOnServer(ns, lastTarget, serverName);
 			}
@@ -59,7 +59,7 @@ export async function ListenForBatches(ns) {
 				await startHackGrowBatchOnServer(ns, lastTarget, serverName);
 			}
 		}
-		await ns.sleep(250);
+		await ns.sleep(25);
 	}
 }
 
@@ -139,7 +139,6 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 async function spawnVirusScriptAsync(ns, serverName, scriptName, targetServer, numThreads, msDelay, batchId, batchType, step) {
 	ns.print("Running " + scriptName + " with " + numThreads + " threads.");
 	ns.exec(scriptName, serverName, numThreads, targetServer, serverName, batchManagerServiceListenPort, msDelay, batchId, batchType, step);
-	await ns.sleep(5);
 }
 
 async function GetHackGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, scriptServerMaxRam) {
