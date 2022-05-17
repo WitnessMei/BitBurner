@@ -60,7 +60,7 @@ export async function spawnVirusAsync(ns, serverName, target, attackType) {
 	// } else {
 	// 	await runVirusScriptAsync(ns, serverName, hackScriptName, target);
 	// }
-	await ns.sleep(500);
+	await ns.sleep(10);
 }
 
 export async function runVirusScriptAsync(ns, serverName, scriptName, targetServer) {
@@ -76,7 +76,7 @@ export async function runVirusScriptAsync(ns, serverName, scriptName, targetServ
 	let scriptRamCost = ns.getScriptRam(scriptName);
 	let maximumThreads = Math.floor(serverAvailableRam / scriptRamCost);
 	if (maximumThreads != 0) {
-		ns.print("Running " + scriptName + " on " + serverName + " targeting " + targetServer + " with " + maximumThreads + " threads");
+		//ns.print("Running " + scriptName + " on " + serverName + " targeting " + targetServer + " with " + maximumThreads + " threads");
 		ns.exec(scriptName, serverName, maximumThreads, targetServer, serverName, listenPort);
 	}
 }

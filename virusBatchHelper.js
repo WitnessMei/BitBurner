@@ -59,17 +59,21 @@ export async function GetGrowBatchExecutionDetailsAsync(ns, targetServerName, ma
 	var growRam = ns.getScriptRam(growScriptName, ns.getHostname());
 	var callbackRam = ns.getScriptRam(batchCallbackScriptName, ns.getHostname());
 
+	var targetMaxMoney = ns.getServerMaxMoney(targetServerName);
+	var targetCurrMoney = ns.getServerMoneyAvailable(targetServerName);
+
 	if(maxRam < (weakenRam + callbackRam + growRam)){
 		return new BatchExecutionDetails(0, 0, 0, 0, 0, 0, 0, 0, targetServerName); 
 	}
 	var ramUnit = (maxRam - callbackRam)/9.0;
 	var maxRamForGrow = ramUnit * 5.0;
-	var targetMaxMoney = ns.getServerMaxMoney(targetServerName);
-	var targetCurrMoney = ns.getServerMoneyAvailable(targetServerName);
 
 	var growFactorNeededToReset = targetMaxMoney / targetCurrMoney;
 	var totalGrowThreadsRequired = Math.ceil(ns.growthAnalyze(targetServerName, growFactorNeededToReset));
 	var maxPossibleGrowThreads = Math.floor(maxRamForGrow/growRam);
+	if(totalGrowThreadsRequired <= 0){
+		return new BatchExecutionDetails(0, 0, 0, 0, 0, 0, 0, 0, targetServerName); 
+	}
 
 	var growThreadsRequired = 0;
 	if(totalGrowThreadsRequired > maxPossibleGrowThreads){

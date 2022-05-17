@@ -19,7 +19,7 @@ export async function sendMessageOnPort(ns, port, objectToSend) {
 	var messageToSend = JSON.stringify(objectToSend);
 	messageSent = await ns.tryWritePort(port, messageToSend);
 	while (!messageSent) {
-		await ns.sleep(500);
+		await ns.sleep(250);
 		messageSent = await ns.tryWritePort(port, messageToSend);
 	}
 }

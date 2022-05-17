@@ -3,8 +3,8 @@
 
 import * as batchHelper from "/BitBurner/virusBatchHelper.js";
 
-export const intraBatchSeperationMs = 1000;
-export const interBatchSeperationMs = 3000;
+export const intraBatchSeperationMs = 25;
+export const interBatchSeperationMs = 125;
 export const hackSecurityIncrease = 0.002;
 export const growSecurityIncrease = 0.004;
 export const weakenSecurityDecrease = 0.005;
@@ -39,7 +39,7 @@ export async function ListenForBatches(ns) {
 		var message = await ns.readPort(batchManagerServiceListenPort);
 		if (message != "NULL PORT DATA" && message != null && message != "") {
 			let serverStatusReportMessage = JSON.parse(message);
-			ns.print("Recieved message " + message);
+			//ns.print("Recieved message " + message);
 			let serverName = serverStatusReportMessage.serverName;
 			let lastTarget = serverStatusReportMessage.lastTargetServer;
 			let batchId = serverStatusReportMessage.batchId;
@@ -59,13 +59,13 @@ export async function ListenForBatches(ns) {
 				await startHackGrowBatchOnServer(ns, lastTarget, serverName);
 			}
 		}
-		await ns.sleep(25);
+		await ns.sleep(interBatchSeperationMs);
 	}
 }
 
 export async function startHackGrowBatchesOnServer(ns, targetServerName, scriptServerName) {
 	while (await startHackGrowBatchOnServer(ns, targetServerName, scriptServerName)) {
-		await ns.sleep(100)
+		await ns.sleep(interBatchSeperationMs)
 	}
 }
 
@@ -88,8 +88,8 @@ export async function startHackGrowBatchOnServer(ns, targetServerName, scriptSer
 
 	//Deploy and run scripts with delays to complete the batch attack.
 	//Run one callback script to alert BatchManagerService when the batch is complete.
-	ns.print("BATCH " + batchId + " on " + scriptServerName + ":");
-	ns.print("Target " + targetServerName);
+	// ns.print("BATCH " + batchId + " on " + scriptServerName + ":");
+	// ns.print("Target " + targetServerName);
 	await spawnVirusScriptAsync(ns, scriptServerName, hackScriptName, targetServerName, executionDetails.numHackThreads, hackDelay, batchId, "hack", 1);
 	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetHackThreads, firstWeakenDelay, batchId, "hack", 2);
 	await spawnVirusScriptAsync(ns, scriptServerName, growScriptName, targetServerName, executionDetails.numGrowThreads, growDelay, batchId, "hack", 3);
@@ -104,7 +104,7 @@ export async function startHackGrowBatchOnServer(ns, targetServerName, scriptSer
 
 export async function startGrowBatchesOnServer(ns, targetServerName, scriptServerName) {
 	while (await StartGrowBatchOnServer(ns, targetServerName, scriptServerName)) {
-		await ns.sleep(100)
+		await ns.sleep(interBatchSeperationMs)
 	}
 }
 
@@ -112,7 +112,7 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 	var batchId = crypto.randomUUID();
 	var availableRam = ns.getServerMaxRam(scriptServerName) - ns.getServerUsedRam(scriptServerName);
 	let executionDetails = await GetGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, availableRam);
-	//ns.tprint(executionDetails);
+	ns.tprint(executionDetails);
 	if (executionDetails.batchRamCost == 0) {
 		return false;
 	}
@@ -125,8 +125,8 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 
 	//Deploy and run scripts with delays to complete the batch attack.
 	//Run one callback script to alert BatchManagerService when the batch is complete.
-	ns.print("BATCH " + batchId + " on " + scriptServerName + ":");
-	ns.print("Target " + targetServerName);
+	// ns.print("BATCH " + batchId + " on " + scriptServerName + ":");
+	// ns.print("Target " + targetServerName);
 	await spawnVirusScriptAsync(ns, scriptServerName, growScriptName, targetServerName, executionDetails.numGrowThreads, growDelay, batchId, "grow", 1);
 	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetGrowThreads, secondWeakenDelay, batchId, "grow", 2);
 	await spawnVirusScriptAsync(ns, scriptServerName, callbackScriptName, targetServerName, 1, callbackDelay, batchId, "grow", 3);
@@ -137,7 +137,7 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 }
 
 async function spawnVirusScriptAsync(ns, serverName, scriptName, targetServer, numThreads, msDelay, batchId, batchType, step) {
-	ns.print("Running " + scriptName + " with " + numThreads + " threads.");
+	//ns.print("Running " + scriptName + " with " + numThreads + " threads.");
 	ns.exec(scriptName, serverName, numThreads, targetServer, serverName, batchManagerServiceListenPort, msDelay, batchId, batchType, step);
 }
 
