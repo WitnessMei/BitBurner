@@ -44,7 +44,10 @@ export async function spawnVirusAsync(ns, serverName, target, attackType) {
 	if (attackType == "grow") {
 		await batchManager.startGrowBatchesOnServer(ns, target, serverName);
 	} else if (attackType == "hack") {
-		await batchManager.startHackGrowBatchesOnServer(ns, target, serverName)
+		await batchManager.startHackGrowBatchesOnServer(ns, target, serverName);
+	}
+	else if (attackType == "weaken") {
+		await batchManager.startWeakenBatchOnServer(ns, target, serverName);
 	}
 	else {
 		await ns.tprint("Unrecognized attack type!");
@@ -117,17 +120,22 @@ async function compromiseAndNukeServerAsync(ns, serverName) {
 	if (numPortsToHack > 1) {
 		ns.ftpcrack(serverName)
 	}
-	if (numPortsToHack > 2) {
+	if (numPortsToHack > 2 ) {
 		ns.relaysmtp(serverName)
 	}
-	if (numPortsToHack > 3) {
+	if (numPortsToHack > 3 ) {
 		ns.httpworm(serverName)
 	}
-	if (numPortsToHack > 4) {
-		ns.print("Unable to open more than 4 ports");
-		return false; //currently unable to open more than 4 ports
+	if (numPortsToHack > 4 ) {
+		ns.httpworm(serverName)
 	}
+	try{
 	ns.nuke(serverName);
+	}
+	catch(error){
+		ns.tprint("Could not nuke " + serverName);
+		return false;
+	}
 	ns.print("Successfully nuked " + serverName);
 	return true;
 }

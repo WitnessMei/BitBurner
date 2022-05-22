@@ -52,10 +52,20 @@ export async function ListenForBatches(ns) {
 
 			var targetMoneyThreshold = ns.getServerMaxMoney(lastTarget) * 0.98;
 			var targetCurrMoney = ns.getServerMoneyAvailable(lastTarget);
-			if(serverStatusReportMessage.batchType == 'grow' && targetCurrMoney < targetMoneyThreshold){
+			var serverMinSec = ns.getServerMinSecurityLevel(lastTarget);
+			var serverCurrSec = ns.getServerSecurityLevel(lastTarget);
+
+			//Always hack grow batch unless we need to recover to optimal values
+			if (serverCurrSec > serverMinSec + 1){
+				ns.print("Weakening...");
+				await startWeakenBatchOnServer(ns, lastTarget, serverName);
+			}
+			else if(targetCurrMoney < targetMoneyThreshold){
+				ns.print("Growing...");
 				await StartGrowBatchOnServer(ns, lastTarget, serverName);
 			}
-			else if (serverStatusReportMessage.batchType == 'hack'){
+			else{
+				ns.print("Hacking...");
 				await startHackGrowBatchOnServer(ns, lastTarget, serverName);
 			}
 		}
@@ -112,7 +122,6 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 	var batchId = crypto.randomUUID();
 	var availableRam = ns.getServerMaxRam(scriptServerName) - ns.getServerUsedRam(scriptServerName);
 	let executionDetails = await GetGrowBatchExecutionDetailsWithMaxRamAsync(ns, targetServerName, availableRam);
-	ns.tprint(executionDetails);
 	if (executionDetails.batchRamCost == 0) {
 		return false;
 	}
@@ -134,6 +143,48 @@ export async function StartGrowBatchOnServer(ns, targetServerName, scriptServerN
 	// var batchTrackingDetails = new BatchDetails(scriptServerName, batchId, executionDetails);
 	// trackedBatches.push(batchTrackingDetails);
 	return true;
+}
+
+export async function startWeakenBatchOnServer(ns, targetServerName, scriptServerName) {
+	var batchId = crypto.randomUUID();
+	var availableRam = ns.getServerMaxRam(scriptServerName) - ns.getServerUsedRam(scriptServerName);
+	let executionDetails = await batchHelper.GetWeakenBatchExecutionDetailsAsync(ns, targetServerName, availableRam);
+	if (executionDetails.batchRamCost == 0) {
+		return false;
+	}
+	//our "weaken" grows the server a bit anyway but just weakens over time as well.
+	var weakenTime = ns.getWeakenTime(targetServerName);
+	var secondWeakenDelay = 0;
+	var callbackDelay = weakenTime + intraBatchSeperationMs;
+
+	//Deploy and run scripts with delays to complete the batch attack.
+	//Run one callback script to alert BatchManagerService when the batch is complete.
+	// ns.print("BATCH " + batchId + " on " + scriptServerName + ":");
+	// ns.print("Target " + targetServerName);
+	await spawnVirusScriptAsync(ns, scriptServerName, weakenScriptName, targetServerName, executionDetails.numWeakenResetGrowThreads, secondWeakenDelay, batchId, "weaken", 1);
+	await spawnVirusScriptAsync(ns, scriptServerName, callbackScriptName, targetServerName, 1, callbackDelay, batchId, "weaken", 2);
+
+	// var batchTrackingDetails = new BatchDetails(scriptServerName, batchId, executionDetails);
+	// trackedBatches.push(batchTrackingDetails);
+	return true;
+}
+
+export async function runMaxCapacityVirusScriptAsync(ns, serverName, scriptName, targetServer) {
+	if (ns.getServerRequiredHackingLevel(targetServer) > ns.getHackingLevel()) {
+		ns.print("Required hacking level too high");
+		return;
+	}
+	ns.scriptKill(hackScriptName, serverName);
+	ns.scriptKill(weakenScriptName, serverName);
+	ns.scriptKill(growScriptName, serverName);
+	let serverRam = ns.getServerRam(serverName);
+	let serverAvailableRam = serverRam[0] - serverRam[1];
+	let scriptRamCost = ns.getScriptRam(scriptName);
+	let maximumThreads = Math.floor(serverAvailableRam / scriptRamCost);
+	if (maximumThreads != 0) {
+		//ns.print("Running " + scriptName + " on " + serverName + " targeting " + targetServer + " with " + maximumThreads + " threads");
+		ns.exec(scriptName, serverName, maximumThreads, targetServer, serverName, listenPort);
+	}
 }
 
 async function spawnVirusScriptAsync(ns, serverName, scriptName, targetServer, numThreads, msDelay, batchId, batchType, step) {

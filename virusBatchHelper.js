@@ -87,6 +87,26 @@ export async function GetGrowBatchExecutionDetailsAsync(ns, targetServerName, ma
 	return new BatchExecutionDetails(0, growThreadsRequired, 0, weakenThreadsToResetGrow, weakenRam, 0, growRam, callbackRam, targetServerName);
 }
 
+export async function GetWeakenBatchExecutionDetailsAsync(ns, targetServerName, maxRam) {
+	var weakenRam = ns.getScriptRam(weakenScriptName, ns.getHostname());
+	var growRam = ns.getScriptRam(growScriptName, ns.getHostname());
+	var callbackRam = ns.getScriptRam(batchCallbackScriptName, ns.getHostname());
+
+	if(maxRam < (weakenRam + callbackRam + growRam)){
+		return new BatchExecutionDetails(0, 0, 0, 0, 0, 0, 0, 0, targetServerName); 
+	}
+
+	var maxRamForWeaken = maxRam - callbackRam;
+	
+	var ramUnit = (maxRam - callbackRam)/9.0;
+	var maxPossibleWeakenThreads = Math.floor(maxRamForWeaken/growRam);
+	if(maxPossibleWeakenThreads <= 0){
+		return new BatchExecutionDetails(0, 0, 0, 0, 0, 0, 0, 0, targetServerName); 
+	}
+
+	return new BatchExecutionDetails(0, 0, 0, maxPossibleWeakenThreads, weakenRam, 0, 0, callbackRam, targetServerName);
+}
+
 function DetermineNumWeakenThreadsCounterGrow(ns, numGrowThreads) {
 	var totalSecIncrease = ns.growthAnalyzeSecurity(numGrowThreads);
 	return DetermineNumWeakenThreadsCounterSecIncrease(totalSecIncrease);
